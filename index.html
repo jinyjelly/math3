@@ -14,8 +14,7 @@
         .pr { font-size: 1.6rem; font-weight: bold; margin: 30px 0; min-height: 60px; color: #333; display: flex; align-items: center; justify-content: center; }
         .opt-btn { font-size: 1.05rem; width: 100%; padding: 12px; background: #fff; border: 2px solid #2196f3; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 8px; color: #1565c0; }
         #fb-msg { margin-top:15px; font-weight:bold; min-height: 3em; color: #0d47a1; display: flex; align-items: center; justify-content: center; text-align: center; }
-        /* 버튼이 잘 보이도록 색상을 더 진하게 변경 */
-        .start-btn { font-size: 1.8rem; padding: 15px 40px; background: #1565c0; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 50px; display: inline-block !important; }
+        .start-btn { font-size: 1.8rem; padding: 15px 40px; background: #1565c0; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 50px; z-index: 999; position: relative; }
     </style>
 </head>
 <body>
@@ -24,8 +23,8 @@
 
     <div id="S_START" class="scr on">
         <h2 style="color:#1565c0;">📐 곱셈공식(3) 챌린지</h2>
-        <p style="color:gray;">버튼을 누르면 바로 시작됩니다!</p>
-        <button id="GO_BTN" class="start-btn" onclick="startGameNow()">시작하기</button>
+        <p style="color:gray;">버튼을 누르면 즉시 시작됩니다!</p>
+        <button id="GO_BTN" class="start-btn">시작하기</button>
     </div>
 
     <div id="S_QUIZ" class="scr">
@@ -47,20 +46,25 @@
 </div>
 
 <script>
+(function() {
     var ans = "", score = 0, timeLeft = 60, timer = null, isPaused = false;
-    
-    // 시작 함수를 밖으로 빼서 버튼이 즉각 반응하게 했습니다.
-    function startGameNow() {
-        const bgm = document.getElementById('myBgm');
-        
-        // 음악 재생 (안 나와도 무시!)
-        bgm.play().catch(e => console.log("음악 대기중"));
-        
-        // 화면 전환
+    const bgm = document.getElementById('myBgm');
+    const goBtn = document.getElementById('GO_BTN');
+
+    // 버튼 클릭 시 즉시 화면 전환 로직
+    goBtn.addEventListener('click', function() {
+        // 화면부터 바로 넘깁니다
         document.getElementById('S_START').classList.remove('on');
         document.getElementById('S_QUIZ').classList.add('on');
-        
-        // 타이머 시작
+
+        // 음악은 그 뒤에 조용히 재생 시도 (실패해도 게임에 지장 없음)
+        bgm.play().catch(e => console.log("음악 로딩 중..."));
+
+        startTimer();
+        make();
+    });
+
+    function startTimer() {
         if(timer) clearInterval(timer);
         timer = setInterval(function() {
             if(!isPaused) {
@@ -70,14 +74,10 @@
                 if(timeLeft <= 0) endGame();
             }
         }, 1000);
-        
-        make();
     }
 
     function fmt(a, b) {
-        let mid = a + b;
-        let last = a * b;
-        let s = "x²";
+        let mid = a + b, last = a * b, s = "x²";
         if (mid > 0) s += " + " + (mid === 1 ? "" : mid) + "x";
         else if (mid < 0) s += " - " + (Math.abs(mid) === 1 ? "" : Math.abs(mid)) + "x";
         if (last > 0) s += " + " + last;
@@ -95,9 +95,7 @@
         let problemText = "(x " + (a > 0 ? "+ " + a : "- " + Math.abs(a)) + ")(x " + (b > 0 ? "+ " + b : "- " + Math.abs(b)) + ")";
         ans = fmt(a, b);
 
-        let w1 = fmt(a, -b);
-        let w2 = "x² " + (a*b > 0 ? "+ " : "- ") + Math.abs(a*b);
-        let w3 = fmt(a+b, a*b).replace("x²", "x");
+        let w1 = fmt(a, -b), w2 = "x² " + (a*b > 0 ? "+ " : "- ") + Math.abs(a*b), w3 = fmt(a+b, a*b).replace("x²", "x");
 
         document.getElementById('P_TXT').innerText = problemText;
         let os = [ans, w1, w2, w3].sort(() => 0.5 - Math.random());
@@ -125,11 +123,12 @@
 
     function endGame() {
         clearInterval(timer);
-        try { document.getElementById('myBgm').pause(); } catch(e) {}
+        try { bgm.pause(); } catch(e) {}
         document.getElementById('S_QUIZ').classList.remove('on');
         document.getElementById('S_RES').classList.add('on');
         document.getElementById('FINAL_SCORE').innerText = score;
     }
+})();
 </script>
 </body>
 </html>
