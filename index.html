@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>곱셈공식(3) 챌린지</title>
+    <style>
+        body { margin: 0; padding: 20px; background-color: #f0f4f8; display: flex; justify-content: center; font-family: 'Malgun Gothic', sans-serif; }
+        #X_CHALLENGE { text-align: center; background-color: #e3f2fd; padding: 20px; border-radius: 20px; border: 4px solid #2196f3; width: 100%; max-width: 380px; box-sizing: border-box; min-height: 520px; position: relative; }
+        .scr { display: none; } .scr.on { display: block; }
+        #t-bar-box { width: 100%; height: 12px; background: #bbdefb; border-radius: 6px; margin-bottom: 15px; overflow: hidden; }
+        #t-bar-inner { width: 100%; height: 100%; background: #2196f3; transition: width 0.1s linear; }
+        .st-bar { display: flex; justify-content: space-around; font-weight: bold; color: #0d47a1; margin-bottom: 10px; }
+        .pr { font-size: 1.6rem; font-weight: bold; margin: 30px 0; min-height: 60px; color: #333; display: flex; align-items: center; justify-content: center; }
+        .opt-btn { font-size: 1.05rem; width: 100%; padding: 12px; background: #fff; border: 2px solid #2196f3; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 8px; color: #1565c0; }
+        #fb-msg { margin-top:15px; font-weight:bold; min-height: 3em; color: #0d47a1; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .start-btn { font-size: 1.8rem; padding: 15px 40px; background: #2196f3; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 50px; }
+    </style>
+</head>
+<body>
+<div id="X_CHALLENGE">
+    <audio id="myBgm" loop src="bgm.mp3"></audio>
+
+    <div id="S_START" class="scr on">
+        <h2 style="color:#1565c0;">📐 곱셈공식(3)<br>챌린지 🎶</h2>
+        <p style="color:gray;">(x+a)(x+b) 전개 마스터하기!<br>준비되면 시작 버튼을 누르세요.</p>
+        <button id="GO_BTN" class="start-btn">시작하기</button>
+    </div>
+
+    <div id="S_QUIZ" class="scr">
+        <div id="t-bar-box"><div id="t-bar-inner"></div></div>
+        <div class="st-bar">
+            <div>점수: <span id="SCORE_VAL">0</span></div>
+            <div>시간: <span id="TIME_VAL">60</span>초</div>
+        </div>
+        <div id="P_TXT" class="pr"></div>
+        <div id="O_BOX"></div>
+        <div id="fb-msg"></div>
+    </div>
+
+    <div id="S_RES" class="scr">
+        <h2 style="color:#1565c0;">🏁 도전 종료!</h2>
+        <p style="font-size: 1.8rem; margin: 10px 0;">최종 점수: <span id="FINAL_SCORE" style="color:red;">0</span>점</p>
+        <button onclick="location.reload()" class="opt-btn" style="background:#2196f3; color:white; margin-top:20px;">다시 도전하기</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    var ans = "", score = 0, timeLeft = 60, timer = null, isPaused = false;
+    const bgm = document.getElementById('myBgm');
+
+    function init() {
+        // 음악 재생 시도
+        bgm.play().catch(e => console.log("음원 로딩 중이거나 없음"));
+        
+        document.getElementById('S_START').classList.remove('on');
+        document.getElementById('S_QUIZ').classList.add('on');
+        
+        timer = setInterval(function() {
+            if(!isPaused) {
+                timeLeft--;
+                document.getElementById('TIME_VAL').innerText = timeLeft;
+                document.getElementById('t-bar-inner').style.width = (timeLeft/60)*100 + "%";
+                if(timeLeft <= 0) endGame();
+            }
+        }, 1000);
+        make();
+    }
+
+    // 다항식을 예쁘게 만들어주는 함수
+    function fmt(a, b) {
+        let mid = a + b;
+        let last = a * b;
+        let s = "x²";
+        
+        if (mid > 0) s += " + " + (mid === 1 ? "" : mid) + "x";
+        else if (mid < 0) s += " - " + (Math.abs(mid) === 1 ? "" : Math.abs(mid)) + "x";
+        
+        if (last > 0) s += " + " + last;
+        else if (last < 0) s += " - " + Math.abs(last);
+        
+        return s;
+    }
+
+    function make() {
+        isPaused = false;
+        document.getElementById('fb-msg').innerHTML = "";
+        
+        // 정수 a, b 랜덤 생성 (-9 ~ 9 사이, 0 제외)
+        let a = 0, b = 0;
+        while(a === 0) a = Math.floor(Math.random() * 19) - 9;
+        while(b === 0 || b === a) b = Math.floor(Math.random() * 19) - 9;
+
+        let problemText = "(x " + (a > 0 ? "+ " + a : "- " + Math.abs(a)) + ")(x " + (b > 0 ? "+ " + b : "- " + Math.abs(b)) + ")";
+        ans = fmt(a, b);
+
+        // 오답 리스트 생성 (비슷해 보이게)
+        let w1 = fmt(a, -b); // b의 부호만 바꾼 경우
+        let w2 = "x² " + (a*b > 0 ? "+ " : "- ") + Math.abs(a*b); // 합(일차항)을 아예 빼먹은 경우
+        let w3 = fmt(a+b, a*b).replace("x²", "x"); // 실수 유도형
+
+        document.getElementById('P_TXT').innerText = problemText;
+        
+        let os = [ans, w1, w2, w3].sort(() => 0.5 - Math.random());
+        let box = document.getElementById('O_BOX'); box.innerHTML = "";
+        os.forEach(v => {
+            let btn = document.createElement('button'); btn.className = 'opt-btn'; btn.innerText = v;
+            btn.onclick = () => { if(!isPaused) check(v); };
+            box.appendChild(btn);
+        });
+    }
+
+    function check(v) {
+        let fb = document.getElementById('fb-msg');
+        if(v === ans) {
+            score += 100;
+            document.getElementById('SCORE_VAL').innerText = score;
+            fb.innerHTML
