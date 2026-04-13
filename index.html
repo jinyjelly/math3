@@ -14,17 +14,18 @@
         .pr { font-size: 1.6rem; font-weight: bold; margin: 30px 0; min-height: 60px; color: #333; display: flex; align-items: center; justify-content: center; }
         .opt-btn { font-size: 1.05rem; width: 100%; padding: 12px; background: #fff; border: 2px solid #2196f3; border-radius: 10px; cursor: pointer; font-weight: bold; margin-bottom: 8px; color: #1565c0; }
         #fb-msg { margin-top:15px; font-weight:bold; min-height: 3em; color: #0d47a1; display: flex; align-items: center; justify-content: center; text-align: center; }
-        .start-btn { font-size: 1.8rem; padding: 15px 40px; background: #2196f3; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 50px; }
+        /* 버튼이 잘 보이도록 색상을 더 진하게 변경 */
+        .start-btn { font-size: 1.8rem; padding: 15px 40px; background: #1565c0; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold; margin-top: 50px; display: inline-block !important; }
     </style>
 </head>
 <body>
 <div id="X_CHALLENGE">
-    <audio id="myBgm" loop src="bgm.mp3" preload="auto"></audio>
+    <audio id="myBgm" loop src="bgm.mp3" preload="none"></audio>
 
     <div id="S_START" class="scr on">
         <h2 style="color:#1565c0;">📐 곱셈공식(3) 챌린지</h2>
-        <p style="color:gray;">준비되셨나요?<br>음악이 로딩 중이어도 시작 가능합니다!</p>
-        <button id="GO_BTN" class="start-btn">시작하기</button>
+        <p style="color:gray;">버튼을 누르면 바로 시작됩니다!</p>
+        <button id="GO_BTN" class="start-btn" onclick="startGameNow()">시작하기</button>
     </div>
 
     <div id="S_QUIZ" class="scr">
@@ -46,26 +47,20 @@
 </div>
 
 <script>
-(function() {
     var ans = "", score = 0, timeLeft = 60, timer = null, isPaused = false;
-    const bgm = document.getElementById('myBgm');
-
-    function init() {
-        // 음악 재생 시도 (에러가 나도 무시하고 게임 시작!)
-        try {
-            bgm.play().catch(function(e) {
-                console.log("음악 재생 대기 중...");
-            });
-        } catch(e) {}
+    
+    // 시작 함수를 밖으로 빼서 버튼이 즉각 반응하게 했습니다.
+    function startGameNow() {
+        const bgm = document.getElementById('myBgm');
         
+        // 음악 재생 (안 나와도 무시!)
+        bgm.play().catch(e => console.log("음악 대기중"));
+        
+        // 화면 전환
         document.getElementById('S_START').classList.remove('on');
         document.getElementById('S_QUIZ').classList.add('on');
         
-        startTimer();
-        make();
-    }
-
-    function startTimer() {
+        // 타이머 시작
         if(timer) clearInterval(timer);
         timer = setInterval(function() {
             if(!isPaused) {
@@ -75,6 +70,8 @@
                 if(timeLeft <= 0) endGame();
             }
         }, 1000);
+        
+        make();
     }
 
     function fmt(a, b) {
@@ -128,14 +125,11 @@
 
     function endGame() {
         clearInterval(timer);
-        try { bgm.pause(); } catch(e) {}
+        try { document.getElementById('myBgm').pause(); } catch(e) {}
         document.getElementById('S_QUIZ').classList.remove('on');
         document.getElementById('S_RES').classList.add('on');
         document.getElementById('FINAL_SCORE').innerText = score;
     }
-
-    document.getElementById('GO_BTN').onclick = init;
-})();
 </script>
 </body>
 </html>
